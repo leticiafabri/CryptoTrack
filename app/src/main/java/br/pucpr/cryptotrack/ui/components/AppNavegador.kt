@@ -3,10 +3,11 @@ package br.pucpr.cryptotrack.ui.components
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateListOf
-import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import br.pucpr.cryptotrack.data.Moeda
 import br.pucpr.cryptotrack.ui.screens.PrimeiraTela
 import br.pucpr.cryptotrack.ui.screens.SegundaTela
@@ -16,46 +17,33 @@ import br.pucpr.cryptotrack.ui.screens.TerceiraTela
 fun AppNavegador() {
     val navController = rememberNavController()
 
-    // Lista de moedas (dados simulados)
     val moedas = remember {
         mutableStateListOf(
             Moeda(id = 1, nome = "USDT", valor = 6.10f, marketcap = 5.67f),
-            Moeda(id = 2, nome = "ETH", valor = 24379.23f, marketcap = 3.14f),
-            Moeda(id = 3, nome = "BTC", valor = 606877.25f, marketcap = 2.1f),
+            Moeda(id = 2, nome = "ETH", valor = 5.30f, marketcap = 3.14f),
+            Moeda(id = 3, nome = "BTC", valor = 2.71f, marketcap = 2.10f),
         )
     }
 
-    NavHost(
-        navController = navController,
-        startDestination = "home"
-    ) {
-        // Tela inicial
+    NavHost(navController = navController, startDestination = "home") {
+
         composable("home") {
-            PrimeiraTela(
-                moedas = moedas,
-                // Quando clicar em uma moeda, navega pra detalhes
-                onMoedaClick = { moeda ->
-                    navController.navigate("details/${moeda.nome}/${moeda.valor}")
-                },
-                onFavoritesClick = {
-                    navController.navigate("favorites")
-                }
-            )
+            PrimeiraTela(moedas = moedas, navController = navController)
         }
 
-        // Tela de detalhes da moeda
-        composable("details/{nome}/{valor}") { backStackEntry ->
-            val nome = backStackEntry.arguments?.getString("nome") ?: ""
-            val valor = backStackEntry.arguments?.getString("valor") ?: ""
-            SegundaTela(
-                nomeMoeda = nome,
-                valor = valor
-            )
+        composable(
+            route = "details/{moedaId}",
+            arguments = listOf(navArgument("moedaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val moedaId = backStackEntry.arguments?.getInt("moedaId") ?: return@composable
+            val moeda = moedas.firstOrNull { it.id == moedaId }
+            moeda?.let {
+                SegundaTela(moeda = it, navController = navController)
+            }
         }
 
-        // Tela de favoritos
         composable("favorites") {
-            TerceiraTela(favoritas = moedas.filter { it.isFavorite })
+            TerceiraTela(moedas = moedas, navController = navController)
         }
     }
 }
