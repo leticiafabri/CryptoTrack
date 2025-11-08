@@ -1,23 +1,20 @@
-// ../app/data/MoedaDao.kt
+// ../app/data/PessoaDao.kt
 package br.pucpr.cryptotrack.data
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MoedaDao {
-
-    // reatividade sem coroutines na UI
     @Query("SELECT * FROM moedas ORDER BY id DESC")
-    fun observarTodas(): LiveData<List<Moeda>>
+    fun observarTodas(): Flow<List<Moeda>>
 
-    // funções síncronas (apenas para POC)
     @Insert
-    fun inserir(moeda: Moeda): Long
+    suspend fun inserir(moeda: Moeda): Long
 
     @Update
-    fun atualizar(moeda: Moeda)
+    suspend fun atualizar(moeda: Moeda)
 
     @Delete
-    fun deletar(moeda: Moeda)
+    suspend fun deletar(moeda: Moeda)
 }
