@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,19 +22,26 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.pucpr.cryptotrack.data.Moeda
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrimeiraTela(
     moedas: List<Moeda>,
     navController: NavController,
-    nomeUsuario: String = "Leticia"
 ) {
     Scaffold(
-        bottomBar = {
-            BottomNavigationBar(
-                selected = "home",
-                onNavigate = { rota -> navController.navigate(rota) }
-            )
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate("cadastro") },
+                containerColor = Color(0xFF7E57C2)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Adicionar moeda",
+                    tint = Color.White
+                )
+            }
         },
+        bottomBar = { BottomNavigationBar(navController) },
         containerColor = Color.White
     ) { innerPadding ->
         Column(
@@ -43,7 +51,7 @@ fun PrimeiraTela(
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Cabeçalho
+            // Título
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -52,7 +60,7 @@ fun PrimeiraTela(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Welcome, $nomeUsuario",
+                    text = "Bem-vindo ao CryptoTrack",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -61,12 +69,14 @@ fun PrimeiraTela(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo de busca
+            // Campo de busca (ainda não funciona)
             OutlinedTextField(
                 value = "",
                 onValueChange = {},
                 placeholder = { Text("Search") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = "Buscar")
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFFF3ECF9), RoundedCornerShape(40.dp)),
@@ -82,7 +92,7 @@ fun PrimeiraTela(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Bookmarks",
+                text = "Menu",
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.align(Alignment.Start)
             )
@@ -90,39 +100,54 @@ fun PrimeiraTela(
             Spacer(modifier = Modifier.height(8.dp))
 
             // Lista de moedas
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(moedas, key = { it.id }) { moeda ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                navController.navigate("details/${moeda.id}")
-                            },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFF3ECF9)
-                        ),
-                        elevation = CardDefaults.cardElevation(2.dp)
-                    ) {
-                        Row(
+            if (moedas.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Nenhuma moeda cadastrada ainda")
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(moedas, key = { it.id }) { moeda ->
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .clickable {
+                                    navController.navigate("details/${moeda.id}")
+                                },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFF3ECF9)
+                            ),
+                            elevation = CardDefaults.cardElevation(2.dp)
                         ) {
-                            Column {
-                                Text(text = moeda.nome, fontWeight = FontWeight.Bold)
-                                Text(text = "= R$ ${moeda.valor}")
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column {
+                                    Text(
+                                        text = moeda.nome,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(text = "= R$ ${moeda.valor}")
+                                    Text(text = "Market Cap: ${moeda.marketcap}")
+                                }
+
+                                //aqui acho que coloca a funcionalidade de mudar o isfavorite = true
+                                Icon(
+                                    imageVector = Icons.Default.FavoriteBorder,
+                                    contentDescription = "Favoritar",
+                                    tint = Color.Black
+                                )
                             }
-                            Icon(
-                                imageVector = Icons.Default.FavoriteBorder,
-                                contentDescription = "Favoritar",
-                                tint = Color.Black
-                            )
                         }
                     }
                 }
@@ -132,25 +157,29 @@ fun PrimeiraTela(
 }
 
 @Composable
-fun BottomNavigationBar(selected: String, onNavigate: (String) -> Unit) {
-    NavigationBar(containerColor = Color(0xFFF3ECF9)) {
+
+//aqui são as navegações da BottomNavigationBar
+fun BottomNavigationBar(navController: NavController) {
+    NavigationBar(
+        containerColor = Color(0xFFF3ECF9)
+    ) {
         NavigationBarItem(
             icon = { Icon(Icons.Default.Menu, contentDescription = "Home") },
             label = { Text("Home") },
-            selected = selected == "home",
-            onClick = { onNavigate("home") }
+            selected = true,
+            onClick = { navController.navigate("home") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Search, contentDescription = "Details") },
             label = { Text("Details") },
-            selected = selected == "details",
-            onClick = { onNavigate("details/1") }
+            selected = false,
+            onClick = { navController.navigate("details/1") } // apenas exemplo
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorites") },
             label = { Text("Favorites") },
-            selected = selected == "favorites",
-            onClick = { onNavigate("favorites") }
+            selected = false,
+            onClick = { navController.navigate("favorites") }
         )
     }
 }

@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,16 +17,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.pucpr.cryptotrack.data.Moeda
+import br.pucpr.cryptotrack.ui.components.BottomNavigationBar
 
 @Composable
-fun TerceiraTela(moedas: List<Moeda>, navController: NavController) {
+fun TerceiraTela(
+    moedas: List<Moeda>,
+    navController: NavController
+) {
     Scaffold(
-        bottomBar = {
-            BottomNavigationBar(
-                selected = "favorites",
-                onNavigate = { rota -> navController.navigate(rota) }
-            )
-        },
+        bottomBar = { BottomNavigationBar(navController) },
         containerColor = Color.White
     ) { innerPadding ->
         Column(
@@ -44,7 +43,7 @@ fun TerceiraTela(moedas: List<Moeda>, navController: NavController) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Favorites",
+                    text = "Seus Favoritos",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -53,29 +52,47 @@ fun TerceiraTela(moedas: List<Moeda>, navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(moedas) { moeda ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF3ECF9))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+            if (moedas.isEmpty()) {
+                Text(
+                    text = "Você ainda não tem favoritos!",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 24.dp)
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(moedas, key = { it.id }) { moeda ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFF3ECF9)
+                            ),
+                            elevation = CardDefaults.cardElevation(2.dp)
                         ) {
-                            Text(text = moeda.nome, fontWeight = FontWeight.Bold)
-                            Icon(
-                                imageVector = Icons.Default.Favorite,
-                                contentDescription = "Favorito",
-                                tint = Color.Black
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column {
+                                    Text(
+                                        text = moeda.nome,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(text = "= R$ ${moeda.valor}")
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.FavoriteBorder,
+                                    contentDescription = "Favorito",
+                                    tint = Color.Black
+                                )
+                            }
                         }
                     }
                 }
